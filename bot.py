@@ -1,10 +1,12 @@
-import os, json, threading
+import os, json, threading, asyncio
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from telegram import Update, InlineKeyboardButton as IKB, InlineKeyboardMarkup as IKM
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 
 class H(BaseHTTPRequestHandler):
     def do_GET(s): s.send_response(200); s.end_headers(); s.wfile.write(b"OK")
+    def do_HEAD(s): s.send_response(200); s.end_headers()
+
 threading.Thread(target=lambda: HTTPServer(("0.0.0.0", int(os.environ.get("PORT", 10000))), H).serve_forever(), daemon=True).start()
 
 TOKEN = "8816292939:AAEN-e8TRuyQOWBHQGdBsPcl4_rHKD8Q7Mk"
@@ -64,6 +66,11 @@ async def doc(u: Update, c: ContextTypes.DEFAULT_TYPE):
         d = u.message.document
         b = db_rw(); b.append({"name": (d.file_name or "جزوه").replace(".pdf",""), "id": d.file_id}); db_rw(b)
         await u.message.reply_text("✅ اضافه شد.", reply_markup=l_kb())
+
+try:
+    asyncio.get_event_loop()
+except RuntimeError:
+    asyncio.set_event_loop(asyncio.new_event_loop())
 
 app = ApplicationBuilder().token(TOKEN).build()
 for h in [CommandHandler("start", start), CommandHandler("del", del_cmd), CallbackQueryHandler(cb), MessageHandler(filters.Document.ALL, doc)]: app.add_handler(h)
