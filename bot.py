@@ -9,12 +9,14 @@ class H(BaseHTTPRequestHandler):
 threading.Thread(target=lambda: HTTPServer(("0.0.0.0", int(os.getenv("PORT", 10000))), H).serve_forever(), daemon=True).start()
 
 ADM = 8489885798
-CHS = [("@PastelFinal", "📢 کانال اول", "https://t.me/PastelFinal"),
-       ("@VlP_KLID", "📢 کانال دوم", "https://t.me/VlP_KLID"),
-       (-1004361916345, "👥 گروه", "https://t.me/+2gHubFEar48yODZk")]
+CHS = [
+    ("@PastelFinal", "📢 کانال اول", "https://t.me/PastelFinal"),
+    ("@VlP_KLID", "📢 کانال دوم", "https://t.me/VlP_KLID"),
+    (-1004361916345, "👥 گروه", "https://t.me/+2gHubFEar48yODZk")
+]
 
 BOTS = [
-    ("8850433468:AAG8DnOH_MzBGoF5_GDfnAtAApHsTgqJuaY", "booklets_1.json"),
+    ("8850433468:AAFcWolZczZbIGdmREy2Dehnga_5bDARXgo", "booklets_1.json"),
     ("8816292939:AAEN-e8TRuyQOWBHQGdBsPcl4_rHKD8Q7Mk", "booklets_2.json"),
     ("8864428476:AAGvMDDQqcX5zYbvEA0iLkI5VW1SVkXGogI", "booklets_3.json")
 ]
@@ -22,7 +24,8 @@ BOTS = [
 async def is_sub(u, b):
     for c, _, _ in CHS:
         try:
-            if (await b.get_chat_member(c, u)).status not in ["member", "administrator", "creator"]: return False
+            m = await b.get_chat_member(c, u)
+            if m.status not in ["member", "administrator", "creator"]: return False
         except: return False
     return True
 
@@ -63,12 +66,12 @@ def make_app(tok, db):
             data.append({"name": (d.file_name or "جزوه").replace(".pdf", ""), "id": d.file_id})
             rw(data); await u.message.reply_text("✅ اضافه شد.", reply_markup=kb("dl"))
 
-    app = ApplicationBuilder().token(tok).build()
+    app = ApplicationBuilder().token(tok.strip()).build()
     for h in [CommandHandler("start", start), CommandHandler("del", del_cmd), CallbackQueryHandler(cb), MessageHandler(filters.Document.ALL, doc)]: app.add_handler(h)
     return app
 
 async def main():
-    apps = [make_app(t, d) for t, d in BOTS]
+    apps = [make_app(t.strip(), d) for t, d in BOTS]
     for a in apps:
         await a.initialize(); await a.start()
         await a.updater.start_polling(drop_pending_updates=True)
